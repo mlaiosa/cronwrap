@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./cronwrap ./tester test01_foo test01_bar || echo Fail

@@ -1,0 +1,4 @@
+A test consists of at least two files: an executable file, named $TEST, and its
+expected output, named ${TEST}.out.  If, when $TEST is run, it outputs anything
+different from the contents of ${TEST}.out, then it fails.  If a test needs
+auxiliary files, they may be put here so long as they are not executable.

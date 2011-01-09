@@ -1,3 +1,6 @@
+/*
+Copyright 2011 Mike Laiosa <mike@laiosa.org>.  Licensed under the GPLv2.
+*/
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>

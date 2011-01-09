@@ -11,27 +11,23 @@ Copyright 2011 Mike Laiosa <mike@laiosa.org>.  Licensed under the GPLv2.
 #include <string.h>
 
 char template[] = "/tmp/cronwrap.XXXXXX";
-void cleanup(void) {
-	unlink(template);
-	template[0] = 0;
-}
 
 int main(int argc, char **argv) {
 	pid_t child;
 	int log;
-	char **args = malloc(sizeof *args * argc-1);
+	/* Make a NULL-terminated copy of argv.  I suspect that argv will itself
+	 * always be NULL-terminated, but I can't find any reference proving that.
+	 */
+	char **args = malloc(sizeof *args * argc);
 	if (!args) {
 		puts("Out of memory");
 		return 1;
 	}
-	memcpy(args, argv+2, sizeof *args * argc-2);
-	args[argc-2] = NULL;
-
-	/* No need for stdin */
-	close(0);
+	memcpy(args, argv+1, sizeof *args * argc-1);
+	args[argc-1] = NULL;
 
 	log = mkstemp(template);
-	atexit(cleanup);
+
 	child = fork();
 	if (child == 0) {
 		/*We are the child.*/
@@ -42,24 +38,33 @@ int main(int argc, char **argv) {
 		close(log);
 		execvp(argv[1], args);
 		printf("Unable to launch %s\n", argv[1]);
-		return 1;
+		return EXIT_FAILURE;
 	}
 	else {
 		/*We are the parent*/
 		char buf[1024];
 		int status;
 		size_t bytes_read;
+		/* Close the FDs we don't need. */
+		close(0);
 		close(log);
-		waitpid(child, &status, 0);
-		if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-			exit(0);
+		while (waitpid(child, &status, 0) != child)
+			;
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+			exit(EXIT_SUCCESS);
+			unlink(template);
+		}
 		log = open(template, O_RDONLY, 0);
 		while ((bytes_read = read(log, buf, sizeof buf)) > 0) {
 			write(1, buf, bytes_read);
 		}
 		close(log);
-		exit(status);
+		unlink(template);
+		if (WIFEXITED(status))
+			exit(WEXITSTATUS(status));
+		else
+			exit(EXIT_FAILURE);
 	}
-	
+
 	return 0;
 }

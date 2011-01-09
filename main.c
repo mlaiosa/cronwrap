@@ -10,7 +10,11 @@ Copyright 2011 Mike Laiosa <mike@laiosa.org>.  Licensed under the GPLv2.
 #include <stdlib.h>
 #include <string.h>
 
-char template[] = "/tmp/cronwrap.XXXXXX";
+static char *tempfile = NULL;
+static void cleanup_tempfile(void) {
+	if (tempfile)
+		unlink(tempfile);
+}
 
 int main(int argc, char **argv) {
 	pid_t child;
@@ -26,11 +30,36 @@ int main(int argc, char **argv) {
 	memcpy(args, argv+1, sizeof *args * argc-1);
 	args[argc-1] = NULL;
 
-	log = mkstemp(template);
+	/* Create our temp file */
+	{
+		const char *template = "/cronwrap.XXXXXX";
+		const char *tmpdir = getenv("TMPDIR");
+		if (tmpdir == NULL) tmpdir = "/tmp";
+		tempfile = malloc(strlen(tmpdir) + strlen(template) + 1);
+		if (!tempfile) {
+			puts("Out of memory");
+			return 1;
+		}
+		strcpy(tempfile, tmpdir);
+		strcat(tempfile, template);
+
+		log = mkstemp(tempfile);
+		if (log == -1) {
+			printf("Unable to create the temporary file %s\n", tempfile);
+			tempfile = NULL;
+			return 1;
+		}
+		atexit(cleanup_tempfile);
+	}
 
 	child = fork();
-	if (child == 0) {
+	if (child == -1) {
+		puts("Unable to fork");
+		return 1;
+	}
+	else if (child == 0) {
 		/*We are the child.*/
+		tempfile = NULL;
 		close(1);
 		close(2);
 		dup2(log, 1);
@@ -52,14 +81,12 @@ int main(int argc, char **argv) {
 			;
 		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
 			exit(EXIT_SUCCESS);
-			unlink(template);
 		}
-		log = open(template, O_RDONLY, 0);
+		log = open(tempfile, O_RDONLY, 0);
 		while ((bytes_read = read(log, buf, sizeof buf)) > 0) {
 			write(1, buf, bytes_read);
 		}
 		close(log);
-		unlink(template);
 		if (WIFEXITED(status))
 			exit(WEXITSTATUS(status));
 		else

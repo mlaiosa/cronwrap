@@ -1,0 +1,8 @@
+#!/bin/sh
+
+export TMPDIR=/tmp/$$.tmpdir
+
+#test that TMPDIR is respected
+mkdir $TMPDIR
+./cronwrap rmdir $TMPDIR > /dev/null && echo TMPDIR not respected
+rm -rf $TMPDIR

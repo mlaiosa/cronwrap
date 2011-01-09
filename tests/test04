@@ -1,0 +1,10 @@
+#!/bin/sh
+
+export TMPDIR=/tmp/$$.tmpdir
+
+#test that the temp file is removed.
+mkdir $TMPDIR
+./cronwrap echo Hello World
+#This line will be noisy if the temp file is retained.
+rmdir $TMPDIR
+rm -rf $TMPDIR

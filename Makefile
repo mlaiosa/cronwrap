@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-Os -Wall -Werror
+#CFLAGS=-g -Wall -Werror
 
 all: cronwrap tester
 clean:

@@ -10,6 +10,12 @@ Copyright 2011 Mike Laiosa <mike@laiosa.org>.  Licensed under the GPLv2.
 #include <stdlib.h>
 #include <string.h>
 
+#if defined (__GNUC__)
+#define UNUSED_VAR __attribute__((unused))
+#else
+#define UNUSED_VAR
+#endif
+
 static char *tempfile = NULL;
 static void cleanup_tempfile(void) {
 	if (tempfile)
@@ -84,7 +90,10 @@ int main(int argc, char **argv) {
 		}
 		log = open(tempfile, O_RDONLY, 0);
 		while ((bytes_read = read(log, buf, sizeof buf)) > 0) {
-			write(1, buf, bytes_read);
+			/* There's nothing we can really do if the write fails,
+			   but simply casting the result to void doesn't seem
+			   sufficient to overcome GCC's warning. */
+			UNUSED_VAR int result = write(1, buf, bytes_read);
 		}
 		close(log);
 		if (WIFEXITED(status))

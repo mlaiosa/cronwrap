@@ -25,16 +25,6 @@ static void cleanup_tempfile(void) {
 int main(int argc, char **argv) {
 	pid_t child;
 	int log;
-	/* Make a NULL-terminated copy of argv.  I suspect that argv will itself
-	 * always be NULL-terminated, but I can't find any reference proving that.
-	 */
-	char **args = malloc(sizeof *args * argc);
-	if (!args) {
-		puts("Out of memory");
-		return 1;
-	}
-	memcpy(args, argv+1, sizeof *args * argc-1);
-	args[argc-1] = NULL;
 
 	/* Create our temp file */
 	{
@@ -71,7 +61,7 @@ int main(int argc, char **argv) {
 		dup2(log, 1);
 		dup2(log, 2);
 		close(log);
-		execvp(argv[1], args);
+		execvp(argv[1], argv+1);
 		printf("Unable to launch %s\n", argv[1]);
 		return EXIT_FAILURE;
 	}

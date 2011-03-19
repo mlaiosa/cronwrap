@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ -e /tmp/$$.txt ] ;then
+	echo /tmp/$$.txt exists, but I have pid $$.
+	echo 1
+fi
+./cronwrap --save-output=/tmp/$$.txt
+if [ -e /tmp/$$.txt ] ;then
+	echo "--save-output created an output file when it shouldn't have"
+	rm -f /tmp/$$.txt
+fi

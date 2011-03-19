@@ -1,0 +1,6 @@
+#!/bin/sh
+
+./cronwrap --save-output=/tmp/$$.txt echo hi
+echo output:
+cat /tmp/$$.txt
+rm -f /tmp/$$.txt

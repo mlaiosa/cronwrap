@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+FILE=
+
+if [ -e /tmp/$$ ];then
+	echo /tmp/$$ exists, but I have pid $$.
+	exit 1
+fi
+
+mkdir /tmp/$$
+D=`pwd`
+cd /tmp/$$
+
+$D/cronwrap -- $D/tester a b --save-output=output.txt || true
+
+if [ -e output.txt ]; then
+	echo "-- didn't do its job."
+fi
+
+cd $D
+rm -rf /tmp/$$
+
+echo goodbye

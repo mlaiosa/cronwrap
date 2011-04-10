@@ -12,11 +12,11 @@ for f in tests/*; do
 	fi
 done
 INCOMPLETE="${INCOMPLETE}\r"
-echo -ne $INCOMPLETE
+printf -- "$INCOMPLETE"
 
 for f in tests/*; do
 	if [ -x $f ] ;then
-		echo -n \|
+		printf \|
 		if [ ! -e $f.out ] ;then
 			NUM_FAIL="$NUM_FAIL + 1"
 			ERRORS="$ERRORS\n$f.out missing."
@@ -31,7 +31,7 @@ for f in tests/*; do
 	fi
 done
 
-echo -e $ERRORS
+printf "$ERRORS\n"
 NUM_PASS=`expr $NUM_PASS`
 NUM_FAIL=`expr $NUM_FAIL`
 echo Passed: $NUM_PASS
